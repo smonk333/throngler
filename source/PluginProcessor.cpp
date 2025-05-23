@@ -10,12 +10,30 @@ PluginProcessor::PluginProcessor()
                       #endif
                        .withOutput ("Output", juce::AudioChannelSet::stereo(), true)
                      #endif
-                       )
+                       ),
+                     apvts(*this, nullptr, "Parameters", createParameterLayout())
 {
+    // caching parameter pointers
+    gainParam = apvts.getRawParameterValue("gain");
+    driveParam = apvts.getRawParameterValue("drive");
+    toneParam = apvts.getRawParameterValue("tone");
 }
 
 PluginProcessor::~PluginProcessor()
 {
+}
+
+//======================create parameter layout=================================
+
+juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout()
+{
+    std::vector<std::unique_ptr<juce::RangedAudioParameter>> params;
+
+    params.push_back(std::make_unique<juce::AudioParameterFloat>("gain", "Gain", 1.0f, 10.0f, 3.0f));
+    params.push_back(std::make_unique<juce::AudioParameterFloat>("drive", "Drive", 1.0f, 20.0f, 5.0f));
+    params.push_back(std::make_unique<juce::AudioParameterFloat>("tone", "Tone", 200.0f, 20000.0f, 8000.0f));
+
+    return { params.begin(), params.end() };
 }
 
 //==============================================================================
@@ -86,9 +104,13 @@ void PluginProcessor::changeProgramName (int index, const juce::String& newName)
 //==============================================================================
 void PluginProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
-    // Use this method as the place to do any pre-playback
-    // initialisation that you need..
-    juce::ignoreUnused (sampleRate, samplesPerBlock);
+    // initializing a tone filter
+    juce::dsp::ProcessSpec spec;
+    spec.sampleRate = sampleRate;
+    spec.maximumBlockSize = samplesPerBlock;
+    spec.numChannels = getTotalNumInputChannels();
+
+    toneFilter.prepare(spec);
 }
 
 void PluginProcessor::releaseResources()
