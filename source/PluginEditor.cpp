@@ -3,24 +3,39 @@
 PluginEditor::PluginEditor (PluginProcessor& p)
     : AudioProcessorEditor (&p), processorRef (p)
 {
-    juce::ignoreUnused (processorRef);
+    using SliderAttachment = juce::AudioProcessorValueTreeState::SliderAttachment;
 
-    addAndMakeVisible (inspectButton);
+    auto& params = processorRef.apvts;
 
-    // this chunk of code instantiates and opens the melatonin inspector
-    inspectButton.onClick = [&] {
-        if (!inspector)
-        {
-            inspector = std::make_unique<melatonin::Inspector> (*this);
-            inspector->onClose = [this]() { inspector.reset(); };
-        }
-
-        inspector->setVisible (true);
+    auto setupSlider = [this](juce::Slider& s) {
+        s.setSliderStyle(juce::Slider::SliderStyle::RotaryVerticalDrag);
+        s.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 60, 20);
+        addAndMakeVisible(s);
     };
 
-    // Make sure that before the constructor has finished, you've set the
-    // editor's size to whatever you need it to be.
-    setSize (400, 300);
+    auto setupLabel = [this](juce::Label& l) {
+        l.setJustificationType(juce::Justification::centred);
+        addAndMakeVisible(l);
+    };
+
+    setupSlider(gainSlider);
+    setupSlider(driveSlider);
+    setupSlider(toneSlider);
+
+    gainSliderAttach = std::make_unique<SliderAttachment>(params, "gain", gainSlider);
+    driveSliderAttach = std::make_unique<SliderAttachment>(params, "drive", driveSlider);
+    toneSliderAttach = std::make_unique<SliderAttachment>(params, "tone", toneSlider);
+
+    gainLabel.setText("Gain", juce::dontSendNotification);
+    driveLabel.setText("Drive", juce::dontSendNotification);
+    toneLabel.setText("Tone", juce::dontSendNotification);
+
+    setupLabel(gainLabel);
+    setupLabel(driveLabel);
+    setupLabel(toneLabel);
+
+    setSize(600, 400);
+    setResizable(true, true);
 }
 
 PluginEditor::~PluginEditor()
@@ -32,17 +47,25 @@ void PluginEditor::paint (juce::Graphics& g)
     // (Our component is opaque, so we must completely fill the background with a solid colour)
     g.fillAll (getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));
 
-    auto area = getLocalBounds();
-    g.setColour (juce::Colours::white);
-    g.setFont (16.0f);
-    auto helloWorld = juce::String ("Hello from ") + PRODUCT_NAME_WITHOUT_VERSION + " v" VERSION + " running in " + CMAKE_BUILD_TYPE;
-    g.drawText (helloWorld, area.removeFromTop (150), juce::Justification::centred, false);
 }
 
 void PluginEditor::resized()
 {
     // layout the positions of your child components here
-    auto area = getLocalBounds();
-    area.removeFromBottom(50);
-    inspectButton.setBounds (getLocalBounds().withSizeKeepingCentre(100, 50));
+    auto area = getLocalBounds().reduced(20);
+    auto row = area.removeFromTop(220);
+
+    auto sliderWidth = row.getWidth() / 3;
+
+    gainSlider.setBounds(row.removeFromLeft(sliderWidth));
+    driveSlider.setBounds(row.removeFromLeft(sliderWidth));
+    toneSlider.setBounds(row.removeFromLeft(sliderWidth));
+
+    auto labelRow = getLocalBounds().reduced(20).removeFromBottom(180 + 0).removeFromBottom(30);
+    auto labelWidth = labelRow.getWidth() / 3;
+
+    gainLabel.setBounds(labelRow.removeFromLeft(labelWidth));
+    driveLabel.setBounds(labelRow.removeFromLeft(labelWidth));
+    toneLabel.setBounds(labelRow.removeFromLeft(labelWidth));
+
 }

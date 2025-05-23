@@ -25,7 +25,7 @@ PluginProcessor::~PluginProcessor()
 
 //======================create parameter layout=================================
 
-juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout()
+juce::AudioProcessorValueTreeState::ParameterLayout PluginProcessor::createParameterLayout()
 {
     std::vector<std::unique_ptr<juce::RangedAudioParameter>> params;
 
@@ -163,7 +163,7 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
         {
             float in = channelData[sa];
             float distort = std::tanh(drive * in); // controls how aggressive distortion is
-            channelData[sa] = gain * distort;         // gain controls output level
+            channelData[sa] = gain * distort * 0.5f;  // gain controls output level, scaled down to avoid clipping
         }
     }
 
@@ -198,6 +198,7 @@ void PluginProcessor::setStateInformation (const void* data, int sizeInBytes)
     // whose contents will have been created by the getStateInformation() call.
     juce::ignoreUnused (data, sizeInBytes);
 }
+
 
 //==============================================================================
 // This creates new instances of the plugin..
