@@ -156,10 +156,10 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
 
     juce::dsp::AudioBlock<float> block(buffer);
 
-    for (int ch = 0; ch < buffer.getNumChannels(); ++ch)
+    for (int ch = 0; ch < numChannels; ++ch)
     {
         auto* channelData = buffer.getWritePointer(ch);
-        for (int sa = 0; sa < buffer.getNumSamples(); ++sa)
+        for (int sa = 0; sa < numSamples; ++sa)
         {
             float in = channelData[sa];
             float distort = std::tanh(drive * in); // controls how aggressive distortion is
