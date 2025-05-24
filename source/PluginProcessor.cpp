@@ -163,7 +163,8 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
         {
             float in = channelData[sa];
             float distort = std::tanh(drive * in); // controls how aggressive distortion is
-            channelData[sa] = gain * distort * 0.5f;  // gain controls output level, scaled down to avoid clipping
+            auto preLimit = gain * distort * 0.5f;  // gain controls output level, scaled down to avoid clipping
+            channelData[sa] = juce::jlimit(-1.0f, 1.0f, preLimit);
         }
     }
 

@@ -13,7 +13,8 @@ PluginEditor::PluginEditor (PluginProcessor& p)
         addAndMakeVisible(s);
     };
 
-    auto setupLabel = [this](juce::Label& l) {
+    auto setupLabel = [this](juce::Label& l, const juce::String& text) {
+        l.setText(text, juce::dontSendNotification);
         l.setJustificationType(juce::Justification::centred);
         addAndMakeVisible(l);
     };
@@ -26,13 +27,9 @@ PluginEditor::PluginEditor (PluginProcessor& p)
     driveSliderAttach = std::make_unique<SliderAttachment>(params, "drive", driveSlider);
     toneSliderAttach = std::make_unique<SliderAttachment>(params, "tone", toneSlider);
 
-    gainLabel.setText("Gain", juce::dontSendNotification);
-    driveLabel.setText("Drive", juce::dontSendNotification);
-    toneLabel.setText("Tone", juce::dontSendNotification);
-
-    setupLabel(gainLabel);
-    setupLabel(driveLabel);
-    setupLabel(toneLabel);
+    setupLabel(gainLabel, "Gain");
+    setupLabel(driveLabel, "Drive");
+    setupLabel(toneLabel, "Tone");
 
     setSize(600, 400);
     setResizable(true, true);
